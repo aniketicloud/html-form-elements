@@ -53,14 +53,49 @@ class DlRandomQuote extends HTMLElement {
 
         // pull the reference to quote element out and configure the interval
         this._$quote = this.querySelector("#quote");
-        this._interval = setInterval(() => this._render(), 500);
+        // this._interval = setInterval(() => this._render(), 500);
+        this._setInterval(this.getAttribute("interval"));
         this._render();
     }
     _render() {
         if (this._$quote !== null) {
+            /**
+             * Note: DOM Updates are always expensive
+             * here, updating the part of the dom which needs to be changed
+             * by individually selecting the quote element
+             * What would actually would be easier to do is restamp
+             * the entire template every time there is an update to the quote text.
+             */
             this._$quote.innerHTML = this._quotes[Math.floor(Math.random() * this._quotes.length)];
         }
     }
+
+    /**
+     * custom setInterval that takes interval as an attribute
+     */
+    _setInterval(intervalValue) {
+        // first cancelling any variable instances
+        if (this._interval !== null) {
+            clearInterval(this._interval);
+        }
+        // if specified value is greater than 0
+        if (intervalValue > 0) {
+            this._interval = setInterval(() => this._render(), intervalValue);
+        }
+    }
+
+    // watching the change in the attribute
+    // without these two methods, you can't change in browser attributes
+    // this should return  an array containing the names of the attributes you want to observe:
+    static get observedAttributes(){
+        return ["interval"];
+    }
+    // setting the new value
+    // callback is run whenever one of the element's attributes is changed in some way
+    attributeChangedCallback(name, oldValue, newValue) {
+        this._setInterval(newValue);
+    }
+
     disconnectedCallback() {
         clearInterval(this._interval);
     }
